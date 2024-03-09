@@ -95,11 +95,16 @@ def rotate(direction, speed, speedunits, ang):
 
 # auton code
 def autonomous():
-    #Move Forward Till the Robots end is in line and is Parrellel with the goal
+   #Set Speed
+    #For starting we are going 50% will up as it gets more accurate
+    drivetrain.set_drive_velocity(50, PERCENT)
 
+    #Move Forward Till the Robots end is in line and is Parrellel with the goal
+    #114 Cm -> 1140 MM
+    drivetrain.drive_for(FORWARD, 1140, MM)
 
     #Turn Left 90 Degrees
-
+    drivetrain.turn_for(LEFT, 90, DEGREES
 
     #Push Triball under the net
 
