@@ -105,7 +105,8 @@ def autonomous():
     drivetrain.drive_for(FORWARD, 890, MM)
 
     #Turn Left 90 Degrees
-    drivetrain.turn_for(LEFT, 90, DEGREES
+    #Attempt 2: Didnt turn far enough, adding 45 degrees 90 -> 135
+    drivetrain.turn_for(LEFT, 135, DEGREES)
 
     #Push Triball under the net
 
