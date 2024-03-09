@@ -102,7 +102,8 @@ def autonomous():
     #Move Forward Till the Robots end is in line and is Parrellel with the goal
     #114 Cm -> 1140 MM
     #Attempt 1: Went to far, bringing it back 250 mm (1140 to 890)
-    drivetrain.drive_for(FORWARD, 890, MM)
+    #Attempt 3: didnt go far enough, adding back to 1000 mm
+    drivetrain.drive_for(FORWARD, 1000, MM)
 
     #Turn Left 90 Degrees
     #Attempt 2: Didnt turn far enough, adding 45 degrees 90 -> 135
