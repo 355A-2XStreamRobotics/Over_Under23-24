@@ -109,6 +109,8 @@ def autonomous():
     drivetrain.turn_for(LEFT, 135, DEGREES)
 
     #Push Triball under the net
+    #25 cm -> 250 mm
+    drivetrain.drive_for(FORWARD, 250, MM)
 
 
     #Backout from under the goal
