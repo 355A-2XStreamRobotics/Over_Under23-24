@@ -95,7 +95,19 @@ def rotate(direction, speed, speedunits, ang):
 
 # auton code
 def autonomous():
+    #Move Forward Till the Robots end is in line and is Parrellel with the goal
+
+
+    #Turn Left 90 Degrees
+
+
+    #Push Triball under the net
+
+
+    #Backout from under the goal
+
     
+    #End Code
 #end auton code
 
 # Driver control code
