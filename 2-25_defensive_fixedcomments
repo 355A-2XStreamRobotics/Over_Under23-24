@@ -1,0 +1,189 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+controller_1 = Controller(PRIMARY)
+left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+left_motor_b = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+left_drive_smart = MotorGroup(left_motor_a, left_motor_b)
+right_motor_a = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
+drivetrain = DriveTrain(left_drive_smart, right_drive_smart, 319.19, 295, 40, MM, 1)
+cyl = DigitalOut(brain.three_wire_port.d)
+flywheel = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+arm_motor_a = Motor(Ports.PORT8, GearSetting.RATIO_36_1, True)
+arm_motor_b = Motor(Ports.PORT9, GearSetting.RATIO_36_1, False)
+arm = MotorGroup(arm_motor_a, arm_motor_b)
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+
+
+def play_vexcode_sound(sound_name):
+    # Helper to make playing sounds from the V5 in VEXcode easier and
+    # keeps the code cleaner by making it clear what is happening.
+    print("VEXPlaySound:" + sound_name)
+    wait(5, MSEC)
+
+# add a small delay to make sure we don't print in the middle of the REPL header
+wait(200, MSEC)
+# clear the console to make sure we don't have the REPL in the console
+print("\033[2J")
+
+#endregion VEXcode Generated Robot Configuration
+# ------------------------------------------------------------------
+#
+# X-Drive Code
+#
+# created 11/12/2023
+#
+# modified 11/18/2023
+# 
+# ------------------------------------------------------------------
+
+# Define the front left motor
+front_left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+# Define the front right motor
+front_right_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+# Define the back left motor
+back_left_motor = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+# Define the back right motor
+back_right_motor = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+# Define a motor group with the front two motors
+front_motors = MotorGroup(front_left_motor, front_right_motor)
+# Define a motor group with the back two motors
+back_motors = MotorGroup(back_left_motor, back_right_motor)
+# Define a drivetrain with the front motor and back motor groups
+drivetrain_strafe = DriveTrain(back_motors, front_motors, 319.19, 295, 40, MM, 1)
+#FLYWHEEL
+flywheel = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+flywheel.set_stopping(COAST)
+
+# Functions
+# Define a function to drive either forward or backward
+def driving(direction, speed, speedunits, dist, distanceunits):
+    # Sets the speed of the drivetrain to the input variable speed
+    drivetrain.set_drive_velocity(speed, speedunits)
+    # Drives the drivetrain for the input variables direction and distance
+    drivetrain.drive_for(direction, dist, distanceunits)
+
+# Define a function to strafe either left or right
+def strafe(direction, speed, speedunits, dist, distanceunits):
+    # Sets a variable so the input can be LEFT or RIGHT in order to avoid confusion
+    side = FORWARD if direction == LEFT else REVERSE
+    # Sets the speed of the drivetrain to the input variable speed
+    drivetrain_strafe.set_drive_velocity(speed, speedunits)
+    # Strafes the drivetrain for the input variables side and distance
+    drivetrain_strafe.drive_for(side, dist, distanceunits)
+
+# Define a function to rotate either left or right
+def rotate(direction, speed, speedunits, ang):
+    # Sets the speed of the drivetrain rotation to the input variable speed
+    drivetrain.set_turn_velocity(speed, speedunits)
+    # Rotates the robot for the input variables direction and ang
+    drivetrain.turn_for(direction, ang, DEGREES)
+# End functions
+
+# auton code
+def autonomous():
+    #Set Start Speed to 50% Increase with testing
+    drivetrain.set_drive_velocity(75, PERCENT)
+ 
+    #Drive forward 80 CM so robots side is inline with goal but robot is facing the wall
+    #Attept one: robot moved to far forward, changing from 85 to 75
+    #Attepmt 6: Changed from 75 cm to 70 to avoid hitting the wall
+    drivetrain.drive_for(FORWARD, 700, MM)
+ 
+    #Turn left till robot is parrelle with the goal
+    #Attempt 2: Robot over turned, changing turn from 90 degrees to 50
+    drivetrain.turn_for(RIGHT, 75, DEGREES)
+ 
+    #Move forward 50 cm so robot pushes triball under the net
+    #Attept 3: Robot moves further than needed under the net. Changing from 50 to 30
+    drivetrain.drive_for(FORWARD, 350, MM)
+ 
+    #Backup 50 cm so triball is left under the goal
+    #Attept 4: Robot Backs up to far. shortening from 50 to 30
+    #Attept 5: Moving from 30 to 35 to confirm if we were to strafe sideways that we will not hit either the pole
+    drivetrain.drive_for(REVERSE, 450, MM)
+ 
+#end auton code
+
+# Driver control code
+def driver_control():
+    # make the arm hold its position
+    arm.set_stopping(HOLD)
+    while True:
+        # spin flywheel forward
+        if controller_1.buttonLeft.pressing():
+            flywheel.spin(FORWARD, 100, PERCENT)
+        # stop flywheel
+        elif controller_1.buttonDown.pressing():
+            flywheel.spin(FORWARD, 0, PERCENT)
+        # spin flywheel reverse
+        elif controller_1.buttonRight.pressing():
+            flywheel.spin(REVERSE, 100, PERCENT)
+        # extend pneumatics
+        if controller_1.buttonR1.pressing():
+            cyl.set(False)
+        # retract pneumatics
+        elif controller_1.buttonR2.pressing():
+            cyl.set(True)
+        # raise arm
+        if controller_1.buttonL1.pressing():
+            arm.spin(FORWARD)
+        # lower arm
+        elif controller_1.buttonL2.pressing():
+            arm.spin(REVERSE)
+        else:
+            # make sure the arm stops
+            arm.stop()
+        #elif controller_1.buttonY.pressing():
+         #   if controller_1.buttonX.pressing():
+                #drivetrain.stop()
+         #   else:
+                # Move the robot backwards from the wall
+            #    drivetrain.drive_for(REVERSE, 100, MM)
+                # Rotate the robot 90 degrees to the left
+             #   drivetrain.turn_for(LEFT, 90, DEGREES)
+                # Move the robot to 1 inch from the wall
+              #  drivetrain.drive_for(FORWARD, 100, MM)
+                # Rotate the robot 45 degrees to the left
+               # drivetrain.turn_for(LEFT, 45, DEGREES)
+                # Move the robot until it is past the bar
+                #drivetrain.drive_for(FORWARD, 300, MM)
+                
+        
+        #else:
+
+            # Variable to set the speed for the front left motor based on controller joystick position
+            front_left_speed = controller_1.axis3.position() + controller_1.axis4.position() + controller_1.axis1.position()
+            # Variable to set the speed for the front right motor based on controller joystick position
+            front_right_speed = controller_1.axis3.position() - controller_1.axis4.position() - controller_1.axis1.position()
+            # Variable to set the speed for the back left motor based on controller joystick position
+            back_left_speed = controller_1.axis3.position() - controller_1.axis4.position() + controller_1.axis1.position()
+            # Variable to set the speed for the back right motor based on controller joystick position
+            back_right_speed = controller_1.axis3.position() + controller_1.axis4.position() - controller_1.axis1.position()
+
+            # Spin the front left motor based on the controller joystick position
+            front_left_motor.spin(FORWARD, front_left_speed, PERCENT)
+            # Spin the front right motor based on the controller joystick position
+            front_right_motor.spin(FORWARD, front_right_speed, PERCENT)
+            # Spin the back left motor based on the controller joystick position
+            back_left_motor.spin(FORWARD, back_left_speed, PERCENT)
+            # Spin the back right motor based on the controller joystick position
+            back_right_motor.spin(FORWARD, back_right_speed, PERCENT)
+
+    
+        # End autopilot code
+# End driver control code
+
+# Define the competition to run auton and driver control during matches
+competition = Competition(driver_control, autonomous)
+
