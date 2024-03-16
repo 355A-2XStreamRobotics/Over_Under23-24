@@ -1,0 +1,159 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+controller_1 = Controller(PRIMARY)
+left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+left_motor_b = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+left_drive_smart = MotorGroup(left_motor_a, left_motor_b)
+right_motor_a = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
+drivetrain = DriveTrain(left_drive_smart, right_drive_smart, 319.19, 295, 40, MM, 1)
+cyl2 = DigitalOut(brain.three_wire_port.e)
+Lift_motors_motor_a = Motor(Ports.PORT8, GearSetting.RATIO_36_1, True)
+Lift_motors_motor_b = Motor(Ports.PORT9, GearSetting.RATIO_36_1, False)
+Lift_motors = MotorGroup(Lift_motors_motor_a, Lift_motors_motor_b)
+flywheel = Motor(Ports.PORT5, GearSetting.RATIO_18_1, False)
+cyl1 = DigitalOut(brain.three_wire_port.d)
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+
+
+def play_vexcode_sound(sound_name):
+    # Helper to make playing sounds from the V5 in VEXcode easier and
+    # keeps the code cleaner by making it clear what is happening.
+    print("VEXPlaySound:" + sound_name)
+    wait(5, MSEC)
+
+# add a small delay to make sure we don't print in the middle of the REPL header
+wait(200, MSEC)
+# clear the console to make sure we don't have the REPL in the console
+print("\033[2J")
+
+#endregion VEXcode Generated Robot Configuration
+# ------------------------------------------------------------------
+#
+# X-Drive Code
+#
+# created 11/12/2023
+#
+# modified 11/18/2023
+# 
+# ------------------------------------------------------------------
+# Lift motors
+Right_lift = Motor(Ports.PORT9, GearSetting.RATIO_36_1, False)
+Left_lift = Motor(Ports.PORT8, GearSetting.RATIO_36_1, True)
+Lift_motors = MotorGroup(Right_lift, Left_lift)
+# Define the front left motor
+front_left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+# Define the front right motor
+front_right_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+# Define the back left motor
+back_left_motor = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+# Define the back right motor
+back_right_motor = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+# Define a motor group with the front two motors
+front_motors = MotorGroup(front_left_motor, front_right_motor)
+# Define a motor group with the back two motors
+back_motors = MotorGroup(back_left_motor, back_right_motor)
+# Define a drivetrain with the front motor and back motor groups
+drivetrain_strafe = DriveTrain(back_motors, front_motors, 319.19, 295, 40, MM, 1)
+#FLYWHEEL
+flywheel = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+flywheel.set_stopping(COAST)
+controller_1 = Controller(PRIMARY)
+cyl1 = DigitalOut(brain.three_wire_port.d)
+cyl2 = DigitalOut(brain.three_wire_port.e)
+
+# Functions
+# Define a function to drive either forward or backward
+def driving(direction, speed, speedunits, dist, distanceunits):
+    # Sets the speed of the drivetrain to the input variable speed
+    drivetrain.set_drive_velocity(speed, speedunits)
+    # Drives the drivetrain for the input variables direction and distance
+    drivetrain.drive_for(direction, dist, distanceunits)
+
+# Define a function to strafe either left or right
+def strafe(direction, speed, speedunits, dist, distanceunits):
+    # Sets a variable so the input can be LEFT or RIGHT in order to avoid confusion
+    side = FORWARD if direction == LEFT else REVERSE
+    # Sets the speed of the drivetrain to the input variable speed
+    drivetrain_strafe.set_drive_velocity(speed, speedunits)
+    # Strafes the drivetrain for the input variables side and distance
+    drivetrain_strafe.drive_for(side, dist, distanceunits)
+
+# Define a function to rotate either left or right
+def rotate(direction, speed, speedunits, ang):
+    # Sets the speed of the drivetrain rotation to the input variable speed
+    drivetrain.set_turn_velocity(speed, speedunits)
+    # Rotates the robot for the input variables direction and ang
+    drivetrain.turn_for(direction, ang, DEGREES)
+# End functions
+
+# auton code
+def autonomous():
+    pass
+#end auton code
+
+# Driver control code
+def driver_control():
+    Lift_motors.set_stopping(HOLD)
+    front_left_motor.set_stopping(BRAKE)
+    back_left_motor.set_stopping(BRAKE)
+    front_right_motor.set_stopping(BRAKE)
+    back_right_motor.set_stopping(BRAKE)
+    while True:
+        # Check if a button is pressed to extend the pneumatic
+        if controller_1.buttonR1.pressing():
+            cyl1.set(True)# Extend the pneumatic
+        elif controller_1.buttonR2.pressing():
+            cyl1.set(False)# Retract the pneumatic
+        # add a new cylinder to lock the lift arm in place
+        elif controller_1.buttonUp.pressing():
+            cyl2.set(True)
+        elif controller_1.buttonA.pressing():
+            cyl2.set(False)
+        elif controller_1.buttonL1.pressing():
+            # ask sarah why this changed
+            Lift_motors.spin(FORWARD)
+        elif controller_1.buttonL2.pressing():
+            # ask sarah why this changed
+            Lift_motors.spin(REVERSE)
+        elif controller_1.buttonLeft.pressing():
+            flywheel.spin(FORWARD, 100, PERCENT)
+        elif controller_1.buttonDown.pressing():
+            flywheel.spin(FORWARD, 0, PERCENT)
+        elif controller_1.buttonRight.pressing():
+            flywheel.spin(REVERSE, 100, PERCENT)        
+        else:
+            Lift_motors.stop()
+            # Variable to set the speed for the front left motor based on controller joystick position
+            front_left_speed = controller_1.axis3.position() + controller_1.axis4.position() + controller_1.axis1.position()
+            # Variable to set the speed for the front right motor based on controller joystick position
+            front_right_speed = controller_1.axis3.position() + controller_1.axis4.position() - controller_1.axis1.position()
+            # Variable to set the speed for the back left motor based on controller joystick position
+            back_left_speed = controller_1.axis3.position() - controller_1.axis4.position() + controller_1.axis1.position()
+            # Variable to set the speed for the back right motor based on controller joystick position
+            back_right_speed = controller_1.axis3.position() - controller_1.axis4.position() - controller_1.axis1.position()
+
+            # Spin the front left motor based on the controller joystick position
+            front_left_motor.spin(FORWARD, front_left_speed, PERCENT)
+            # Spin the front right motor based on the controller joystick position
+            front_right_motor.spin(FORWARD, front_right_speed, PERCENT)
+            # Spin the back left motor based on the controller joystick position
+            back_left_motor.spin(FORWARD, back_left_speed, PERCENT)
+            # Spin the back right motor based on the controller joystick position
+            back_right_motor.spin(FORWARD, back_right_speed, PERCENT)
+# End driver control code
+
+# Define the competition to run auton and driver control during matches
+competition = Competition(driver_control, autonomous)
+
+cyl1.set(False)
