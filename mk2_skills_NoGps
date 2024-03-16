@@ -1,0 +1,229 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+gps6 = Gps(Ports.PORT6, 0.00, -180.00, MM, 180)
+left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+left_motor_b = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+left_drive_smart = MotorGroup(left_motor_a, left_motor_b)
+right_motor_a = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
+drivetrain_inertial = Inertial(Ports.PORT7)
+drivetrain = SmartDrive(left_drive_smart, right_drive_smart, drivetrain_inertial, 319.19, 320, 40, MM, 1)
+flywheel = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+controller_1 = Controller(PRIMARY)
+cyls = DigitalOut(brain.three_wire_port.h)
+arm_motor_a = Motor(Ports.PORT8, GearSetting.RATIO_36_1, True)
+arm_motor_b = Motor(Ports.PORT9, GearSetting.RATIO_36_1, False)
+arm = MotorGroup(arm_motor_a, arm_motor_b)
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+
+vexcode_initial_drivetrain_calibration_completed = False
+def calibrate_drivetrain():
+    # Calibrate the Drivetrain Inertial
+    global vexcode_initial_drivetrain_calibration_completed
+    sleep(200, MSEC)
+    brain.screen.print("Calibrating")
+    brain.screen.next_row()
+    brain.screen.print("Inertial")
+    drivetrain_inertial.calibrate()
+    while drivetrain_inertial.is_calibrating():
+        sleep(25, MSEC)
+    vexcode_initial_drivetrain_calibration_completed = True
+    brain.screen.clear_screen()
+    brain.screen.set_cursor(1, 1)
+
+
+def play_vexcode_sound(sound_name):
+    # Helper to make playing sounds from the V5 in VEXcode easier and
+    # keeps the code cleaner by making it clear what is happening.
+    print("VEXPlaySound:" + sound_name)
+    wait(5, MSEC)
+
+# add a small delay to make sure we don't print in the middle of the REPL header
+wait(200, MSEC)
+# clear the console to make sure we don't have the REPL in the console
+print("\033[2J")
+
+#endregion VEXcode Generated Robot Configuration
+
+# ------------------------------------------------------------------------------
+#
+#   Project:            Drive to Location (Unknown Starting Position)
+#	Description:        This example will show how to use a GPS Sensor to
+#                       navigate a V5 Moby Hero Bot to a specified position by
+#                       driving along the X-axis then the Y-axis
+#   Starting Position:  Any
+#   Configuration:      V5 Hero Bot (Drivetrain 2-motor, Inertial)
+#                       Motor Group on Port 2 and 9
+#                       Rotation on Port 4
+#                       GPS on Port 8
+#                       Distance on Port 12
+#                       Optical on Port 19
+#                       Distance on Port 20
+#                       Bumper on 3-Wire Port A
+#
+# ------------------------------------------------------------------------------
+
+# Library imports
+from vex import *
+
+reference_angle = 0
+
+# Define the front left motor
+front_left_motor = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+# Define the front right motor
+front_right_motor = Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+# Define the back left motor
+back_left_motor = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+# Define the back right motor
+back_right_motor = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+# Define a motor group with the front two motors
+front_motors = MotorGroup(front_left_motor, front_right_motor)
+# Define a motor group with the back two motors
+back_motors = MotorGroup(back_left_motor, back_right_motor)
+# Define a drivetrain with the front motor and back motor groups
+drivetrain_strafe = DriveTrain(back_motors, front_motors, 319.19, 295, 40, MM, 1)
+#FLYWHEEL
+flywheel = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+flywheel.set_stopping(COAST)
+
+def drive_to_position_y(y):
+    global reference_angle
+
+    # Reorient the robot before driving along the Y-axis
+    if gps6.y_position(MM) < y:
+        reference_angle = 0
+    else:
+        reference_angle = 180
+
+    # Using an absolute reference angle along with the GPS heading,
+    # we can turn the robot to face the correct direction
+    # before driving along the Y-axis
+    drivetrain.turn_for(RIGHT, (reference_angle - gps6.heading()), DEGREES)
+    drivetrain.drive(FORWARD)
+
+    # Keep driving until the GPS position for the Y-axis
+    # is within 20mm of the target Y position
+    while not (gps6.y_position(MM) - y > -20
+               and gps6.y_position(MM) - y < 20):
+        wait(5, MSEC)
+
+    # This will allow the drivetrain to stop in time,
+    # preventing the robot from overshooting the target
+    drivetrain.stop()
+
+
+def drive_to_position_x(x):
+    global reference_angle
+
+    # Reorient the robot before driving along the X-axis
+    if gps6.x_position(MM) < x:
+        reference_angle = 90
+    else:
+        reference_angle = 270
+
+    # Using an absolute reference angle along with the GPS heading,
+    # we can turn the robot to face the correct direction
+    # before driving along the X-axis
+    drivetrain.turn_for(RIGHT, (reference_angle - gps6.heading()), DEGREES)
+    drivetrain.drive(FORWARD)
+
+    # Keep driving until the GPS position for the X-axis
+    # is within 20mm of the target X position
+    while not (gps6.x_position(MM) - x > -20
+               and gps6.x_position(MM) - x < 20):
+        wait(5, MSEC)
+
+    # This will allow the drivetrain to stop in time,
+    # preventing the robot from overshooting the target
+    drivetrain.stop()
+
+
+def print_position():
+    # Print GPS position values to the V5 Brain
+    brain.screen.print("X: ", gps6.x_position(MM))
+    brain.screen.print("  Y: ", gps6.y_position(MM))
+    brain.screen.next_row()
+
+# Calibrate the Drivetrain for accurate turning
+calibrate_drivetrain()
+
+# Calibrate the GPS Sensor
+gps6.calibrate()
+while gps6.is_calibrating():
+    sleep(25, MSEC)
+def autonomous():
+    drivetrain.set_turn_velocity(25, PERCENT)
+
+    # Print the starting position of the robot
+    print_position()
+
+    # Print the ending position of the robot
+    brain.screen.clear_screen()
+    print_position()
+    flywheel.set_stopping(COAST)
+    flywheel.set_velocity(100,PERCENT)
+    drivetrain.set_drive_velocity(55, PERCENT)
+    # drive reverse to pipe
+    drivetrain.drive_for(REVERSE, 280, MM)
+    # turn 45 degrees to the left
+    drivetrain.turn_for(LEFT, 45, DEGREES)
+    # drive reverse until touching pipe
+    #drivetrain.drive_for(REVERSE, 20, MM)
+    drivetrain.drive_for(REVERSE, 40, MM)
+    # spin flywheel for 30 seconds
+    flywheel.spin(FORWARD)
+    #wait(60,SECONDS)
+    # with testing, we found that the best duration for the flywheel is 45 seconds
+    wait(45,SECONDS)
+    flywheel.stop()
+    # move forward 50 mm so it doesnt catch when it turns
+    drivetrain.drive_for(FORWARD, 50, MM)
+    # turn 45 degrees to the right
+    drivetrain.turn_for(RIGHT, 45, DEGREES)
+    # raise the arm
+    arm.spin_for(REVERSE,375,DEGREES)
+    # drive to the elevation bar
+    drivetrain.drive_for(FORWARD,1300,MM)
+    # raise the lower the cylinders to raise the robot
+    cyls.set(True)
+    # spin the arm back and forth to help close the cylinder
+    arm.spin_for(FORWARD,50,DEGREES)
+    arm.spin_for(REVERSE,50,DEGREES)
+    arm.spin_for(FORWARD,50,DEGREES)
+    arm.spin_for(REVERSE,50,DEGREES)
+
+
+    # turn left 90 degrees
+    #drivetrain.turn_for(LEFT, 90, DEGREES)
+    # drive forward 1 field tile
+    # turn left 90 degrees
+    #drivetrain.turn_for(LEFT, 90, DEGREES)
+    # drive forward 1 field tile
+    # turn right 90 degrees
+    #drivetrain.turn_for(RIGHT, 90, DEGREES)
+    # drive forward 1 field tile
+    # turn right 90 degrees
+    #drivetrain.turn_for(RIGHT, 90, DEGREES)
+    # push tri-balls into goal
+    # reverse to half tile away from middle pipe to grab more tri-balls
+    # turn left 90 degrees
+    # drive forward half of a field tile
+    # turn right 90 degrees
+    #drivetrain.turn_for(RIGHT, 90, DEGREES)
+    # drive forward into goal
+    # reverse to half tile away from middle pipe to grab more tri-balls
+    # turn left 90 degrees
+    # drive forward half of a field tile
+    # turn right 90 degrees
+    #drivetrain.turn_for(RIGHT, 90, DEGREES)
+    # drive forward into goal
