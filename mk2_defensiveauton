@@ -90,14 +90,14 @@ def rotate(direction, speed, speedunits, ang):
     drivetrain.turn_for(direction, ang, DEGREES)
 # End functions
 
-# defeensive auton code
+# defensive auton code
 def autonomous():
     #Set Start Speed to 50% Increase with testing
     drivetrain.set_drive_velocity(75, PERCENT)
  
     #Drive forward 80 CM so robots side is inline with goal but robot is facing the wall
-    #Attept one: robot moved to far forward, changing from 85 to 75
-    #Attepmt 6: Changed from 75 cm to 70 to avoid hitting the wall
+    #Attempt one: robot moved to far forward, changing from 85 to 75
+    #Attempt 6: Changed from 75 cm to 70 to avoid hitting the wall
     drivetrain.drive_for(FORWARD, 700, MM)
  
     #Turn left till robot is parrelle with the goal
@@ -105,12 +105,12 @@ def autonomous():
     drivetrain.turn_for(RIGHT, 75, DEGREES)
  
     #Move forward 50 cm so robot pushes triball under the net
-    #Attept 3: Robot moves further than needed under the net. Changing from 50 to 30
+    #Attempt 3: Robot moves further than needed under the net. Changing from 50 to 30
     drivetrain.drive_for(FORWARD, 350, MM)
  
     #Backup 50 cm so triball is left under the goal
-    #Attept 4: Robot Backs up to far. shortening from 50 to 30
-    #Attept 5: Moving from 30 to 35 to confirm if we were to strafe sideways that we will not hit either the pole
+    #Attempt 4: Robot Backs up to far. shortening from 50 to 30
+    #Attempt 5: Moving from 30 to 35 to confirm if we were to strafe sideways that we will not hit either the pole
     drivetrain.drive_for(REVERSE, 450, MM)
  
 #end auton code
