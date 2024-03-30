@@ -1,0 +1,119 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+controller_1 = Controller(PRIMARY)
+frontleft = Motor(Ports.PORT1, GearSetting.RATIO_6_1, True)
+frontright = Motor(Ports.PORT2, GearSetting.RATIO_6_1, False)
+middleleft = Motor(Ports.PORT3, GearSetting.RATIO_6_1, True)
+middleright = Motor(Ports.PORT4, GearSetting.RATIO_6_1, False)
+backleft = Motor(Ports.PORT5, GearSetting.RATIO_6_1, True)
+backright = Motor(Ports.PORT6, GearSetting.RATIO_6_1, False)
+puncher = Motor(Ports.PORT7, GearSetting.RATIO_36_1, True)
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+
+
+def play_vexcode_sound(sound_name):
+    # Helper to make playing sounds from the V5 in VEXcode easier and
+    # keeps the code cleaner by making it clear what is happening.
+    print("VEXPlaySound:" + sound_name)
+    wait(5, MSEC)
+
+# add a small delay to make sure we don't print in the middle of the REPL header
+wait(200, MSEC)
+# clear the console to make sure we don't have the REPL in the console
+print("\033[2J")
+
+#endregion VEXcode Generated Robot Configuration
+# ------------------------------------------------------------------
+#
+# H Drive Code
+#
+# created 3/30/2024
+#
+# modified 3/30/2024
+# 
+# ------------------------------------------------------------------
+# defining
+brain=Brain()
+controller_1 = Controller(PRIMARY)
+frontleft = Motor(Ports.PORT1, GearSetting.RATIO_6_1, True)
+frontright = Motor(Ports.PORT2, GearSetting.RATIO_6_1, False)
+middleleft = Motor(Ports.PORT3, GearSetting.RATIO_6_1, True)
+middleright = Motor(Ports.PORT4, GearSetting.RATIO_6_1, False)
+backleft = Motor(Ports.PORT5, GearSetting.RATIO_6_1, True)
+backright = Motor(Ports.PORT6, GearSetting.RATIO_6_1, False)
+puncher = Motor(Ports.PORT7, GearSetting.RATIO_36_1, True)
+
+# Functions
+
+# End functions
+
+# offensive auton code
+def autonomous():
+    pass
+#end auton code
+
+# Driver control code
+def driver_control():
+    # set puncher to hold in order to fit under the net
+    puncher.set_stopping(HOLD)
+    while True:
+        # puncher
+        if controller_1.buttonA.pressing():
+            puncher.spin(FORWARD)
+        else:
+            puncher.stop()
+
+        # 6 motor drive
+        # adding exponential drive to all motors, x^3/10000
+        # making steering be 3/4 of input speed
+        # tested 1/2 and 2/3, too slow
+        # changing from tank to arcade controls
+
+        # front left motor
+        #frontleft.set_velocity(controller_1.axis3.position(),PERCENT)
+        frontleftspeed = controller_1.axis3.position() + (controller_1.axis1.position())*0.75
+        frontleft.set_velocity(((frontleftspeed)**3)/10000,PERCENT)
+        frontleft.spin(FORWARD)
+        # front right motor
+        #frontright.set_velocity(controller_1.axis2.position(),PERCENT)
+        frontrightspeed = controller_1.axis3.position() - (controller_1.axis1.position())*0.75
+        frontright.set_velocity(((frontrightspeed)**3)/10000,PERCENT)
+        frontright.spin(FORWARD)
+        # middle left motor
+        #middleleft.set_velocity(controller_1.axis3.position(),PERCENT)
+        middleleftspeed = controller_1.axis3.position() + (controller_1.axis1.position())*0.75
+        middleleft.set_velocity(((middleleftspeed)**3)/10000,PERCENT)
+        middleleft.spin(FORWARD)
+        # middle right motor
+        #middleright.set_velocity(controller_1.axis2.position(),PERCENT)
+        middlerightspeed = controller_1.axis3.position() - (controller_1.axis1.position())*0.75
+        middleright.set_velocity(((middlerightspeed)**3)/10000,PERCENT)
+        middleright.spin(FORWARD)
+        # back left motor
+        #backleft.set_velocity(controller_1.axis3.position(),PERCENT)
+        backleftspeed = controller_1.axis3.position() + (controller_1.axis1.position())*0.75
+        backleft.set_velocity(((backleftspeed)**3)/10000,PERCENT)
+        backleft.spin(FORWARD)
+        # back right motor
+        #backright.set_velocity(controller_1.axis2.position(),PERCENT)
+        backrightspeed = controller_1.axis3.position() - (controller_1.axis1.position())*0.75
+        backright.set_velocity(((backrightspeed)**3)/10000,PERCENT)
+        backright.spin(FORWARD)
+
+        
+
+        
+# End driver control code
+
+
+# Define the competition to run auton and driver control during matches
+competition = Competition(driver_control, autonomous)
